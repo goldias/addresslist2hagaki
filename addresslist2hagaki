@@ -1,0 +1,175 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use utf8;
+use Encode;
+use Data::Dumper;
+binmode(STDIN, ":utf8");
+binmode(STDOUT, ":utf8");
+binmode(STDERR, ":utf8");
+
+# 出力texファイル
+
+
+# 差出人をハッシュに記述
+my %sender = (
+                name        =>      '千利休',
+                nameb       =>      '　稲',
+                addressa    =>      '大阪府堺市堺区宿院町西一七',
+                addressb    =>      '宮寺町中尾グランド三〇五',
+                postcode    =>      '９２０３３４２'
+
+);
+my @addressList;                # ハッシュの住所のリファレンスを格納する
+my $cvs_file_name;
+my $tex_file_name;
+
+($cvs_file_name, $tex_file_name) = @ARGV; # ファイル指定
+
+open my $CVS, '<', $cvs_file_name or die "$cvs_file_name: $!";
+
+for my $line (<$CVS>) {
+    # 読み込んだcvsのutf8フラグをONにする
+    my $line_flagged = Encode::decode('utf8',$line);
+    chomp $line_flagged;
+                    
+    my @field = split /,/, $line_flagged;    # カンマ区切りで配列に格納
+
+    # ハッシュのデータ構造にする
+    # 郵便局のはがきデザインキット住所録csv出力の形式に合わせている
+    my %address = (
+                                        # 住所録の対応列名
+        sei             => $field[0],   # 氏名(姓)
+        mei             => $field[1],   # 氏名(名)
+        postcode        => $field[6],   # 郵便番号(自宅欄)
+        pref            => $field[7],   # 自宅住所(都道府県)
+        city            => $field[8],   # 自宅住所(市区町村)
+        street          => $field[9],   # 自宅住所(番地等)
+        buildings       => $field[10],  # 自宅住所(建物名)
+        keisho          => $field[19],  # 敬称
+        renmei1         => $field[21],  # 連名1(名:自宅欄)
+        renmei1keisho   => $field[23]   # 連名1(敬称:自宅欄)
+        # renmei2         => $field[25],    #
+        # renmei2keisho   => $field[27],    #
+        # renmei3         => $field[29],    #
+        # renmei3keisho   => $field[31],    #
+        # renmei4         => $field[33],    #
+        # renmei4keisho   => $field[35],    #
+        # renmei5         => $field[37],    #
+        # renmei5keisho   => $field[39],    #
+        # renmei6         => $field[41],    #
+        # renmei6keisho   => $field[43],    #
+
+    );
+
+    my $address = \%address;    # ハッシュリファレンスにする
+    push @addressList, $address;   # ハッシュリファレンスを格納用の配列に入れる
+}
+
+close $CVS;
+
+# print Dumper \@addressList;
+
+# 出力texを成形する
+my $temp_body_tex;
+my $head_tex;
+my $body_tex;
+my $foot_tex;
+
+# 出力用texのヘッダー部分の雛型
+$head_tex = << 'EOS';
+\documentclass[]{jletteraddress}
+
+% Font setting
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\kanjifamilydefault}{\gtdefault}
+
+% Sender's informations
+\sendername{__name__}
+\sendernameb{__nameb__}
+\senderaddressa{__addressa__}
+\senderaddressb{__addressb__}
+\senderpostcode{__postcode__}
+
+\begin{document}
+EOS
+
+# 出力用texのヘッダー部分の雛型
+$temp_body_tex = << 'EOS';
+\addaddress
+  {__sei__　__mei__} {__keisho__}    
+  {__postcode__}
+  {__pref____city____street__}    
+  {__buildings__} 
+  {__renmei1__} {__renmei1keisho__} 
+
+EOS
+
+#出力用texのフッタ部分の雛型
+$foot_tex = << 'EOS';
+
+\end{document}
+
+EOS
+
+# print $head_tex;
+# print $foot_tex;
+
+# ヘッダー部分を加工
+# 差出人を設定する
+$head_tex =~ s/__${_}__/$sender{$_}/g for keys(%sender);
+
+# print $head_tex;
+
+# ボディー部分を加工
+#
+foreach my $ref (@addressList) {
+    my %my_address = %$ref;    #デリファレンス
+    next if $my_address{sei} =~ /氏名/;   # 列名行を飛ばす
+
+    # print $my_address{sei} ;
+    # print "\n";
+    # データを整える
+
+    # 郵便番号を全角に統一
+    $my_address{postcode} =~ tr/0123456789/０１２３４５６７８９/;
+    
+    # 住所の番号を漢数字に統一
+    $my_address{city} = num2kansuuji ($my_address{city});
+    $my_address{street} = num2kansuuji ($my_address{street});
+    $my_address{buildings} = num2kansuuji ($my_address{buildings});
+    
+    # 連名レイアウト調整
+    if ($my_address{renmei1} ne ''){
+        # 姓の文字数に合わせて空白を挿入
+        $my_address{renmei1} = '　' x (length($my_address{sei}) + 1 ) . $my_address{renmei1} ;
+    }
+    
+    # body作成
+    my $str = $temp_body_tex;
+    
+    # 宛名を設定する
+    $str =~ s/__${_}__/$my_address{$_}/g for keys(%my_address);
+    $body_tex .= $str;
+
+}
+
+# print $body_tex;
+
+# texファイルを出力する
+open my $TEX, '>', $tex_file_name or die "$tex_file_name: $!";
+
+print $TEX $head_tex . $body_tex . $foot_tex;
+
+close $TEX;
+
+sub num2kansuuji {
+    my ($mystr) = @_;
+    
+    # 全角数字を半角数字にする
+    $mystr =~ tr/０１２３４５６７８９/0123456789/;
+    
+    # 半角数字を漢数字にマイナスを伸ばし棒にする
+    $mystr =~ tr/0123456789-/〇一二三四五六七八九ー/;
+    $mystr;
+}

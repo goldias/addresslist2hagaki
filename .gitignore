@@ -37,3 +37,6 @@
 *.vrb
 *.xdy
 *.tdo
+*.tex
+*.fls
+sample*.pdf

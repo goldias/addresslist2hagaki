@@ -44,7 +44,7 @@
 
 %% Sender macros
 \def\sendername#1{\gdef\@sendername{#1}}
-def\sendernameb#1{\gdef\@sendernameb{#1}}
+\def\sendernameb#1{\gdef\@sendernameb{#1}}
 \def\senderpostcode#1{\gdef\@senderpostcode{#1}}
 \def\senderaddressa#1{\gdef\@senderaddressa{#1}}
 \def\senderaddressb#1{\gdef\@senderaddressb{#1}}

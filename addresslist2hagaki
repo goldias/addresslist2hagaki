@@ -1,4 +1,13 @@
 #!/usr/bin/env perl
+
+##
+##      addresslist2hagaki
+##      郵便局はがきデザインキットの住所録cvsファイルから
+##      jletteraddressl.cls用texを生成します
+##      
+##      Copyright (c) goldias <goldias@mac.com>
+##
+
 use strict;
 use warnings;
 use utf8;
@@ -11,7 +20,7 @@ binmode(STDERR, ":utf8");
 # 出力texファイル
 
 
-# 差出人をハッシュに記述
+# 差出人を書き換えてください
 my %sender = (
                 name        =>      '千利休',
                 nameb       =>      '　稲　',

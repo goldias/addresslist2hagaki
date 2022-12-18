@@ -61,6 +61,6 @@ $ ./addresslist2hagaki <入力cvsファイル名> <出力texファイル名>
 あとはtexファイルを微調整・編集するなりしてください。同梱のjletteraddresslのREADME.mdやsample.texが参考になるでしょう。
 
 ```bash
-$ ptex2pdf <texファイル名>
+$ ptex2pdf -l <texファイル名>
 ```
 おつかれさまでした！

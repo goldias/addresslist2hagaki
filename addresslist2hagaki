@@ -14,7 +14,7 @@ binmode(STDERR, ":utf8");
 # 差出人をハッシュに記述
 my %sender = (
                 name        =>      '千利休',
-                nameb       =>      '　稲',
+                nameb       =>      '　稲　',
                 addressa    =>      '大阪府堺市堺区宿院町西一七',
                 addressb    =>      '宮寺町中尾グランド三〇五',
                 postcode    =>      '９２０３３４２'

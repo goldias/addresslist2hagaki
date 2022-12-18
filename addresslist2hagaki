@@ -5,7 +5,7 @@
 ##      郵便局はがきデザインキットの住所録cvsファイルから
 ##      jletteraddressl.cls用texを生成します
 ##      
-##      Copyright (c) goldias <goldias@mac.com>
+##      Copyright (c) 2022 goldias <goldias@mac.com>
 ##
 
 use strict;
